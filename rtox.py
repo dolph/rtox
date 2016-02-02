@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 
 import paramiko
@@ -28,16 +29,26 @@ class Client(object):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Remote tox test runner over SSH')
+        description='Remote tox test runner')
 
-    parser.add_argument('--ssh-hostname')
-    parser.add_argument('--ssh-user')
-    parser.add_argument('--ssh-port', type=int)
+    parser.add_argument(
+        '--ssh-hostname',
+        default=os.environ.get('RTOX_SSH_HOSTNAME'))
+    parser.add_argument(
+        '--ssh-user',
+        default=os.environ.get('RTOX_SSH_USER'))
+    parser.add_argument(
+        '--ssh-port', type=int,
+        default=os.environ.get('RTOX_SSH_PORT'))
 
     args = parser.parse_args()
 
     client = Client(args.ssh_hostname, port=args.ssh_port)
-    status_code = client.cmd('source ~/venv/os/bin/activate os && cd ~/openstack/keystone-specs && tox')
+    command = [
+        'source ~/venv/os/bin/activate os',
+        '&&',
+        'cd ~/openstack/keystone-specs && tox']
+    status_code = client.cmd(' '.join(command))
 
     raise SystemExit(status_code)
 
