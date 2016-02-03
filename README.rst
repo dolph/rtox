@@ -9,6 +9,9 @@ considerations in mind:
 - Servers in the cloud are faster and far more powerful than my local
   development environment (laptop).
 
+- Latency introduced to the command line by a remote connection, especially on
+  bad WiFi, is painful.
+
 - Running huge test suites on a cloud server doesn't drain my laptop's battery
   as much as running them locally would.
 
