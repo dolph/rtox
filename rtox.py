@@ -39,16 +39,20 @@ class Client(object):
         stdin, stdout, stderr = self.ssh.exec_command(command)
 
         # Pass remote stdout and stderr to the local terminal
-        while not channel.exit_status_ready():
-            if channel.recv_ready():
-                length = len(channel.in_buffer)
-                sys.stdout.write(channel.recv(length))
+        try:
+            while not channel.exit_status_ready():
+                if channel.recv_ready():
+                    length = len(channel.in_buffer)
+                    sys.stdout.write(channel.recv(length))
 
-            if channel.recv_stderr_ready():
-                length = len(channel.in_stderr_buffer)
-                sys.stderr.write(channel.recv_stderr(length))
+                if channel.recv_stderr_ready():
+                    length = len(channel.in_stderr_buffer)
+                    sys.stderr.write(channel.recv_stderr(length))
 
-        return channel.recv_exit_status()
+            return channel.recv_exit_status()
+        except KeyboardInterrupt:
+            channel.close()
+            return 1
 
 
 def load_config():
