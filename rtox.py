@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-import argparse
 try:
     import ConfigParser as configparser
 except ImportError:
@@ -91,14 +90,11 @@ def shell_escape(arg):
 
 def cli():
     """Run the command line interface of the program."""
-    parser = argparse.ArgumentParser(
-        description='Remote tox test runner')
-    parser.add_argument('arguments_for_tox', nargs=argparse.REMAINDER)
-    args = parser.parse_args()
-
     config = load_config()
 
     repo = local_repo()
+    remote_repo_path = '~/.rtox/%s' % hashlib.sha1(repo).hexdigest()
+
     diff = local_diff()
 
     client = Client(
@@ -106,21 +102,22 @@ def cli():
         port=config.getint('ssh', 'port'),
         user=config.get('ssh', 'user'))
 
-    # Ensure we have a directory to work with on the remote machine.
-    client.run('mkdir -p ~/.rtox/')
-
+    # Bail immediately if we don't have what we need on the remote host.
     if client.run('which virtualenv && which tox') != 0:
         raise SystemExit(
             'Ensure tox and virtualenv are available on the remote host.')
 
-    remote_repo_path = '~/.rtox/%s' % hashlib.sha1(repo).hexdigest()
+    # Ensure we have a directory to work with on the remote host.
+    client.run('mkdir -p ~/.rtox/')
+
+    # Clone the repository we're working on to the remote machine.
     client.run('git clone %s %s' % (repo, remote_repo_path))
     client.run('cd %s ; git pull origin master' % (remote_repo_path))
     client.run('cd %s ; echo %s | git apply' % (
         remote_repo_path, shell_escape(diff)))
 
     command = ['cd %s ; tox' % remote_repo_path]
-    command.extend(args.arguments_for_tox)
+    command.extend(sys.argv)
     status_code = client.run(' '.join(command))
 
     raise SystemExit(status_code)
