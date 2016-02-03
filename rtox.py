@@ -40,10 +40,12 @@ class Client(object):
         # Pass remote stdout and stderr to the local terminal
         while not channel.exit_status_ready():
             if channel.recv_ready():
-                sys.stdout.write(channel.recv(1))
+                length = len(channel.in_buffer)
+                sys.stdout.write(channel.recv(length))
 
             if channel.recv_stderr_ready():
-                sys.stderr.write(channel.recv_stderr(1))
+                length = len(channel.in_stderr_buffer)
+                sys.stderr.write(channel.recv_stderr(length))
 
         return channel.recv_exit_status()
 
