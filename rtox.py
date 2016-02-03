@@ -23,7 +23,10 @@ import paramiko
 
 
 class Client(object):
+    """An SSH client that can runs remote commands as if they were local."""
+
     def __init__(self, hostname, port=None, user=None):
+        """Initialize an SSH client based on the given configuration."""
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.ssh.connect(hostname, port=port, username=user)
