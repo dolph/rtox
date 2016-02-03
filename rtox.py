@@ -31,7 +31,8 @@ class Client(object):
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.ssh.connect(hostname, port=port, username=user)
 
-    def cmd(self, command):
+    def run(self, command):
+        """Run the given command remotely over SSH, echoing output locally."""
         channel = self.ssh.get_transport().open_session()
         channel.exec_command(command)
         stdin, stdout, stderr = self.ssh.exec_command(command)
@@ -69,7 +70,8 @@ def load_config():
     return config
 
 
-def main():
+def cli():
+    """Run the command line interface of the program."""
     parser = argparse.ArgumentParser(
         description='Remote tox test runner')
     parser.add_argument('arguments_for_tox', nargs=argparse.REMAINDER)
@@ -88,10 +90,10 @@ def main():
         '&&'
         'tox']
     command.extend(args.arguments_for_tox)
-    status_code = client.cmd(' '.join(command))
+    status_code = client.run(' '.join(command))
 
     raise SystemExit(status_code)
 
 
 if __name__ == '__main__':
-    main()
+    cli()

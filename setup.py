@@ -23,7 +23,7 @@ setuptools.setup(
     scripts=['rtox.py'],
     install_requires=['paramiko'],
     py_modules=['rtox'],
-    entry_points={'console_scripts': ['rtox = rtox:main']},
+    entry_points={'console_scripts': ['rtox = rtox:cli']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
