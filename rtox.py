@@ -116,6 +116,7 @@ def cli():
 
     # Clone the repository we're working on to the remote machine.
     client.run('git clone %s %s' % (repo, remote_repo_path))
+    client.run('cd %s ; git checkout -- .' % (remote_repo_path))
     client.run('cd %s ; git pull origin master' % (remote_repo_path))
     client.run('cd %s ; echo %s | git apply' % (
         remote_repo_path, shell_escape(diff)))
