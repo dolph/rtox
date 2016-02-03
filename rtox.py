@@ -16,7 +16,9 @@ try:
 except ImportError:
     import configparser
 import getpass
+import hashlib
 import os.path
+import subprocess
 import sys
 
 import paramiko
@@ -72,6 +74,21 @@ def load_config():
     return config
 
 
+def local_repo():
+    output = subprocess.check_output(['git', 'remote', '--verbose'])
+
+    # Parse the output to find the fetch URL.
+    return output.split('\n')[0].split(' ')[0].split('\t')[1]
+
+
+def local_diff():
+    return subprocess.check_output(['git', 'diff', 'master'])
+
+
+def shell_escape(arg):
+        return "'%s'" % (arg.replace(r"'", r"'\''"), )
+
+
 def cli():
     """Run the command line interface of the program."""
     parser = argparse.ArgumentParser(
@@ -81,16 +98,28 @@ def cli():
 
     config = load_config()
 
+    repo = local_repo()
+    diff = local_diff()
+
     client = Client(
         config.get('ssh', 'hostname'),
         port=config.getint('ssh', 'port'),
         user=config.get('ssh', 'user'))
-    command = [
-        'source ~/venv/os/bin/activate os',
-        '&&',
-        'cd ~/openstack/keystone-specs'
-        '&&'
-        'tox']
+
+    # Ensure we have a directory to work with on the remote machine.
+    client.run('mkdir -p ~/.rtox/')
+
+    if client.run('which virtualenv && which tox') != 0:
+        raise SystemExit(
+            'Ensure tox and virtualenv are available on the remote host.')
+
+    remote_repo_path = '~/.rtox/%s' % hashlib.sha1(repo).hexdigest()
+    client.run('git clone %s %s' % (repo, remote_repo_path))
+    client.run('cd %s ; git pull origin master' % (remote_repo_path))
+    client.run('cd %s ; echo %s | git apply' % (
+        remote_repo_path, shell_escape(diff)))
+
+    command = ['cd %s ; tox' % remote_repo_path]
     command.extend(args.arguments_for_tox)
     status_code = client.run(' '.join(command))
 
