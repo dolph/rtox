@@ -128,7 +128,7 @@ def cli():
             remote_repo_path)])
 
     command = ['cd %s ; tox' % remote_repo_path]
-    command.extend(sys.argv)
+    command.extend(sys.argv[1:])
     status_code = client.run(' '.join(command))
 
     raise SystemExit(status_code)
