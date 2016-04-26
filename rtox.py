@@ -19,6 +19,7 @@ import hashlib
 import os.path
 import subprocess
 import sys
+import time
 
 import paramiko
 
@@ -48,6 +49,8 @@ class Client(object):
                 if channel.recv_stderr_ready():
                     length = len(channel.in_stderr_buffer)
                     sys.stderr.write(channel.recv_stderr(length))
+
+                time.sleep(0.1)
 
             return channel.recv_exit_status()
         except KeyboardInterrupt:
