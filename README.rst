@@ -1,6 +1,8 @@
 ``rtox``
 ========
 
+> This project is now developed and distributed via [pycontribs/rtox](https://github.com/pycontribs/rtox).
+
 This project represents an experimental development workflow with the following
 considerations in mind:
 
